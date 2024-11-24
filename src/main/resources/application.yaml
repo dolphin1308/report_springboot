@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: report_book
+  datasource:
+    username: root
+    password: pxx10086
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/academic_report?serverTimezone=Hongkong&useAffectedRows=true&characterEncoding=utf8
+  data:
+    redis:
+      database: 0
+      host: 8.146.209.94
+      port: 6379
+      password: pxx10086
+server:
+  port: 8080
+
+mybatis:
+  config-location: classpath:mybatis/mybatis-config.xml
+  mapper-locations: classpath:mybatis/mapper/*.xml

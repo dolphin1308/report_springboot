@@ -10,7 +10,6 @@ import com.dolphin.report_book.service.StudentService;
 import com.dolphin.report_book.service.TeacherService;
 import com.dolphin.report_book.utils.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -47,84 +46,26 @@ public class LoginController {
             // 管理员登录
             Admin admin = adminService.getByNo(no);
             if (admin!=null && admin.getPassword().equals(password)) {
-                System.out.println("LoginController---->admins:"+admin);
-                Map <String,Object> claims=new HashMap<>();
-                claims.put("id",admin.getId());
-                claims.put("no",admin.getNo());
-                String token= JwtUtil.genToken(claims);
-                ValueOperations<String,String >valueOps= redisTemplate.opsForValue();
-                valueOps.set(token,token,1, TimeUnit.HOURS);
-                return ResponseResult.success(token);
-
-                // 找到登录的用户并放入session
-//                Admin admin = admins.get(0);
-//                user = User.builder()
-//                        .id(admin.getId())
-//                        .no(no)
-//                        .name("管理员[" + admin.getId() + "]")
-//                        .role(Role.ADMIN)
-//                        .img(admin.getImg())
-//                        .build();
-//                result.setCode(200);
-//                result.setMessage("管理员登录成功");
+                return LoginSetting(admin.getId(), admin.getNo(),Role.ADMIN);
             }
-//            else {
-//                // 判断账号是否存在
-//                build.setPassword(null);
-//                List<Admin> existAdmin = adminService.listAdmins(build);
-//                if (existAdmin.size() > 0) {
-//                    // 密码错误
-//                    result.setCode(100);
-//                    result.setMessage("密码错误");
-//                } else {
-//                    // 用户不存在
-//                    result.setCode(101);
-//                    result.setMessage("用户不存在");
-//                }
-//            }
+            else{
+                return ResponseResult.error("管理员登陆失败！");
+            }
         }
         if (Role.STUDENT.equals(role)) {
             // 学生登录
-            Student build = Student.builder()
-                    .no(no).password(password)
-                    .build();
-            List<Student> students = studentService.listStudents(build);
-            if (students.size() > 0) {
-                // 找到登录的用户并放入session
-                Student student = students.get(0);
-                user = User.builder()
-                        .id(student.getId())
-                        .no(no)
-                        .name(student.getName())
-                        .role(Role.STUDENT)
-                        .img(student.getImg())
-                        .build();
-                result.setCode(200);
-                result.setMessage("学生登录成功");
-            } else {
-                // 判断账号是否存在
-                build.setPassword(null);
-                List<Student> existStudent = studentService.listStudents(build);
-                if (existStudent.size() > 0) {
-                    // 密码错误
-                    result.setCode(100);
-                    result.setMessage("密码错误");
-                } else {
-                    // 用户不存在
-                    result.setCode(101);
-                    result.setMessage("用户不存在");
-                }
+            Student students = studentService.getByNo(no);
+            if (students!=null && students.getPassword().equals(password)) {
+                return LoginSetting(students.getId(), students.getNo(),Role.STUDENT);
+            }
+            else{
+                return ResponseResult.error("学生登陆失败！");
             }
         }
         if (Role.TEACHER.equals(role)) {
             // 教师登录
-            Teacher build = Teacher.builder()
-                    .no(no).password(password)
-                    .build();
-            List<Teacher> teachers = teacherService.listTeachers(build);
-            if (teachers.size() > 0) {
-                // 找到登录的用户并放入session
-                Teacher teacher = teachers.get(0);
+            Teacher teacher = teacherService.getByNo(no);
+            if (teacher!=null && teacher.getPassword().equals(password)) {
                 user = User.builder()
                         .id(teacher.getId())
                         .no(no)
@@ -138,58 +79,23 @@ public class LoginController {
                     // 学院领导
                     user.setIsLeader(Leader.YES);
                 }
+                return LoginSetting(teacher.getId(), teacher.getNo(),Role.TEACHER);
             } else {
-                // 判断账号是否存在
-                build.setPassword(null);
-                List<Teacher> existTeacher = teacherService.listTeachers(build);
-                if (existTeacher.size() > 0) {
-                    // 密码错误
-                    result.setCode(100);
-                    result.setMessage("密码错误");
-                } else {
-                    // 用户不存在
-                    result.setCode(101);
-                    result.setMessage("用户不存在");
-                }
+                return ResponseResult.error("教师登陆失败！");
             }
         }
         if (Role.DEPARTMENT.equals(role)) {
             // 部门登录
-            Department build = Department.builder()
-                    .no(no).password(password)
-                    .build();
-            List<Department> departments = departmentService.listDepartments(build);
-            if (departments.size() > 0) {
+            Department department = departmentService.getByNo(no);
+            if (department!=null && department.getPassword().equals(password)) {
                 // 找到登录的用户并放入session
-                Department department = departments.get(0);
-                user = User.builder()
-                        .id(department.getId())
-                        .no(no)
-                        .name(department.getName())
-                        .role(Role.DEPARTMENT)
-                        .img(department.getImg())
-                        .build();
-                result.setCode(200);
-                result.setMessage("部门登录成功");
+                return LoginSetting(department.getId(), department.getNo(),Role.DEPARTMENT);
             } else {
-                // 判断账号是否存在
-                build.setPassword(null);
-                List<Department> existDepartment = departmentService.listDepartments(build);
-                if (existDepartment.size() > 0) {
-                    // 密码错误
-                    result.setCode(100);
-                    result.setMessage("密码错误");
-                } else {
-                    // 用户不存在
-                    result.setCode(101);
-                    result.setMessage("用户不存在");
-                }
+                return ResponseResult.error("部门登陆失败！");
             }
         }
-//        session.setAttribute("loginUser", user);
-        return result;
+        return ResponseResult.error("登陆用户类型错误！");
     }
-
     /**
      * 退出登录
      */
@@ -270,4 +176,14 @@ public class LoginController {
 //        }
 //        return result;
 //    }
+    public ResponseResult LoginSetting(Integer id,String no,String role){
+        Map<String,Object> claims=new HashMap<>();
+        claims.put("id",id);
+        claims.put("no",no);
+        claims.put("role",role);
+        String token=JwtUtil.genToken(claims);
+        ValueOperations<String,String> valueOps=redisTemplate.opsForValue();
+        valueOps.set(token,token,1,TimeUnit.HOURS);
+        return ResponseResult.success(token);
+    }
 }

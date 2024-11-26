@@ -33,6 +33,8 @@ public class SystemController {
     private ReportService reportService;
     @Autowired
     private MeetingService meetingService;
+    @Autowired
+    private MessageService messageService;
 
 
     @GetMapping("/profile")
@@ -103,6 +105,45 @@ public class SystemController {
                 .filter(report -> report.getStatus().intValue() != ReportConstant.TRASH)
                 .collect(Collectors.toList());
         return ResponseResult.success(reports);
+    }
+    /**
+     * 教师查看自己的历史会议
+     */
+    @GetMapping("/pass-meetings")
+    public ResponseResult<List<Meeting>> passMeetings(@RequestHeader("Authorization") String token){
+        Map<String,Object> map = JwtUtil.parseToken(token);
+        List<Meeting> meetings = meetingService.listMyFinishMeetings((Integer) map.get("id"));
+        return ResponseResult.success(meetings);
+    }
+    /**
+     * 前往消息中心
+     */
+    @GetMapping("/messages")
+    public ResponseResult<List<Message>> messages(@RequestHeader("Authorization") String token) {
+        Map<String,Object> map = JwtUtil.parseToken(token);
+        List<Message> messages = messageService.listMessages(Message.builder().toTeacherId((Integer) map.get("id")).build());
+        return ResponseResult.success(messages);
+    }
+
+    /**
+     * 查看已通过审核的报告
+     */
+    @GetMapping("/pass")
+    public ResponseResult<List<Report>> passReport(@RequestHeader("Authorization") String token) {
+        // 获取当前登录用户的学院信息
+        Map<String,Object> map = JwtUtil.parseToken(token);
+        // 获取等待安排会议的报告
+        List<Report> waitMeeting = reportService.listReportsByCollegeId((Integer) map.get("id"), ReportConstant.PASS_FROM_DEPT);
+        // 获取正在预约会议的报告
+        List<Report> appointment = reportService.listReportsByCollegeId((Integer) map.get("id"), ReportConstant.APPOINTMENT);
+        // 获取已经完成会议的学术报告
+        List<Report> finish = reportService.listReportsByCollegeId((Integer) map.get("id"), ReportConstant.FINISHED);
+
+        // 封装结果集
+        List<Report> result = new ArrayList<>(waitMeeting);
+        result.addAll(appointment);
+        result.addAll(finish);
+        return ResponseResult.success(result);
     }
 
 }

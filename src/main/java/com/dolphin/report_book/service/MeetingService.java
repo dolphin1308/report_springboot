@@ -41,6 +41,6 @@ public interface MeetingService {
 
     ResponseResult updateMeeting(Integer meetingId, String hostNo, String reportTime, String reportAddress, String appointEnd, Integer capacity);
 
-    ResponseResult applyMeeting(Integer id, User loginUser);
+    ResponseResult applyMeeting(Integer id, Integer userId);
 
 }

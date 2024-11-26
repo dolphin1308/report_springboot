@@ -224,13 +224,13 @@ public class MeetingServiceImpl implements MeetingService {
     /**
      * 学生预约会议
      */
-    public ResponseResult applyMeeting(Integer id, User loginUser) {
+    public ResponseResult applyMeeting(Integer id, Integer userId) {
         ResponseResult result = new ResponseResult();
         // 获取会议
         Meeting meeting = getById(id);
         // 预约会议
         Appointment build = Appointment.builder()
-                .meetingId(meeting.getId()).studentId(loginUser.getId())
+                .meetingId(meeting.getId()).studentId(userId)
                 .build();
         List<Appointment> appointments = appointmentService.listAppointments(build);
         if (appointments.size() > 0) {
@@ -245,7 +245,7 @@ public class MeetingServiceImpl implements MeetingService {
                 result.setCode(500);
                 result.setMessage("会议火爆，预约已满");
             } else {
-                build.setStudentId(loginUser.getId());
+                build.setStudentId(userId);
                 // 添加预约信息
                 build.setAppointmentTime(new Date());
                 if (appointmentService.insert(build)) {

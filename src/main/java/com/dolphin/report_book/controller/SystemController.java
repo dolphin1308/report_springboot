@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -144,6 +145,71 @@ public class SystemController {
         result.addAll(appointment);
         result.addAll(finish);
         return ResponseResult.success(result);
+    }
+    /**
+     * 获取审核记录
+     */
+    @GetMapping("/review")
+    public ResponseResult Review(@RequestHeader("Authorization") String token){
+        Map<String,Object> map = JwtUtil.parseToken(token);
+        String reviewMeeting=reportService.generateReport((String) map.get("no"));
+        return ResponseResult.success(reviewMeeting);
+    }
+    /**
+     * 学院院长初审
+     */
+    @GetMapping("/leader-audit")
+    public ResponseResult<List<Report>> leaderAudit(@RequestHeader("Authorization") String token) {
+        Map<String,Object> map = JwtUtil.parseToken(token);
+
+        Teacher teacher=teacherService.getById((Integer) map.get("id"));
+        // 获取此学院所有等待院长审核状态的报告
+        List<Report> reports = reportService.listReportsByCollegeId(teacher.getCollegeId(), ReportConstant.WAIT);
+        //封装接口
+        return ResponseResult.success(reports);
+    }
+
+
+
+
+
+    /**
+     * 宣传部
+     */
+
+
+    /**
+     * 查看等待排期的报告
+     */
+    @GetMapping("/wait-arrange")
+    public ResponseResult<List<Report>> waitArrange(@RequestHeader("Authorization") String token) {
+        Map<String,Object> map = JwtUtil.parseToken(token);
+        Department department=departmentService.getById((Integer) map.get("id"));
+        List<Report> waitMeeting = reportService.listReportsByCollegeId(department.getId(),ReportConstant.PASS_FROM_DEPT);
+        List<Report> result = new ArrayList<>(waitMeeting);
+        return ResponseResult.success(result);
+    }
+    /**
+     * 查看开放预约的报告
+     */
+    @GetMapping("/appointing")
+    public ResponseResult<List<Report>> appointing(@RequestHeader("Authorization") String token) {
+        Map<String,Object> map = JwtUtil.parseToken(token);
+        Department department=departmentService.getById((Integer) map.get("id"));
+        // 获取等待安排会议的报告
+        List<Report> result = reportService.listReportsByCollegeId(department.getId(), ReportConstant.APPOINTMENT);
+        return ResponseResult.success(result);
+    }
+    /**
+     * 预约结束，准备会议
+     */
+    @GetMapping("/prepare-meeting")
+    public ResponseResult<List<Meeting>> finishMeeting(@RequestHeader("Authorization") String token) {
+        Map<String,Object> map = JwtUtil.parseToken(token);
+        Department department=departmentService.getById((Integer) map.get("id"));
+        // 获取超过预约时间的会议，且未达到会议时间的报告
+        List<Meeting> meetings = meetingService.listAppointmentEndMeetings(department.getId());
+        return ResponseResult.success(meetings);
     }
 
 }

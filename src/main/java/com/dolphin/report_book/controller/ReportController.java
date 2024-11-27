@@ -24,7 +24,7 @@ public class ReportController {
     @PostMapping("/generateTitle")
     public ResponseResult generateTitle(@RequestParam("title") String title) {
         String generateTitle = reportService.generateTitle(title);
-        return ResponseResult.builder().code(200).message(generateTitle).build();
+        return ResponseResult.success(generateTitle);
     }
 
     /**
@@ -33,7 +33,7 @@ public class ReportController {
     @PostMapping("/generateReport")
     public ResponseResult generateReport(@RequestParam("info") String info) {
         String generateInfo = reportService.generateReport(info);
-        return ResponseResult.builder().code(200).message(generateInfo).build();
+        return ResponseResult.success(generateInfo);
     }
 
     /**
@@ -42,7 +42,7 @@ public class ReportController {
     @PostMapping("/generateReporter")
     public ResponseResult generateReporter(@RequestParam("reporterInfo") String reporterInfo) {
         String generateInfo = reportService.generateReporter(reporterInfo);
-        return ResponseResult.builder().code(200).message(generateInfo).build();
+        return ResponseResult.success(generateInfo);
     }
 
     /**
@@ -73,13 +73,9 @@ public class ReportController {
         report.setStatus(ReportConstant.WAIT);
         // 更新状态为待审核
         if (reportService.update(report)) {
-            result.setCode(200);
-            result.setMessage("移出回收站成功");
-        } else {
-            result.setCode(500);
-            result.setMessage("服务器错误");
+            return ResponseResult.success();
         }
-        return result;
+        return ResponseResult.error("服务器错误！");
     }
 
     /**
